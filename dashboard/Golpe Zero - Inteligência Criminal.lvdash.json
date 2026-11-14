@@ -1,0 +1,372 @@
+{
+  "datasets": [
+    {
+      "name": "1d42e73d",
+      "displayName": "1 - Parameter Input Dataset",
+      "queryLines": [
+        "SELECT\r\n",
+        "    SUM(quantidade) AS total_ocorrencias,\r\n",
+        "    COUNT(DISTINCT natureza) AS naturezas_monitoradas,\r\n",
+        "    COUNT(DISTINCT mes) AS meses_analisados,\r\n",
+        "    COUNT(DISTINCT ano) AS anos_analisados\r\n",
+        "FROM golpe_zero.fato_ocorrencia;"
+      ],
+      "catalog": "workspace",
+      "schema": "golpe_zero"
+    },
+    {
+      "name": "d8920c54",
+      "displayName": "2 - Top Ten Incident Types by Frequency Summary",
+      "queryLines": [
+        "SELECT\r\n",
+        "    natureza,\r\n",
+        "    SUM(quantidade) AS total_ocorrencias\r\n",
+        "FROM golpe_zero.fato_ocorrencia\r\n",
+        "GROUP BY natureza\r\n",
+        "ORDER BY total_ocorrencias DESC\r\n",
+        "LIMIT 10;"
+      ]
+    },
+    {
+      "name": "0f631252",
+      "displayName": "3 - Monthly Occurrences Summary Data",
+      "queryLines": [
+        "SELECT\r\n",
+        "    CASE mes\r\n",
+        "        WHEN 'Janeiro' THEN 1\r\n",
+        "        WHEN 'Fevereiro' THEN 2\r\n",
+        "        WHEN 'Março' THEN 3\r\n",
+        "        WHEN 'Abril' THEN 4\r\n",
+        "        WHEN 'Maio' THEN 5\r\n",
+        "        WHEN 'Junho' THEN 6\r\n",
+        "        WHEN 'Julho' THEN 7\r\n",
+        "        WHEN 'Agosto' THEN 8\r\n",
+        "        WHEN 'Setembro' THEN 9\r\n",
+        "        WHEN 'Outubro' THEN 10\r\n",
+        "        WHEN 'Novembro' THEN 11\r\n",
+        "        WHEN 'Dezembro' THEN 12\r\n",
+        "    END AS numero_mes,\r\n",
+        "    mes,\r\n",
+        "    SUM(quantidade) AS total_ocorrencias\r\n",
+        "FROM golpe_zero.fato_ocorrencia\r\n",
+        "GROUP BY mes\r\n",
+        "ORDER BY numero_mes;"
+      ]
+    },
+    {
+      "name": "e06f02f6",
+      "displayName": "4 - Elderly Population",
+      "queryLines": [
+        "SELECT\r\n",
+        "    estado,\r\n",
+        "    ano,\r\n",
+        "    SUM(populacao_60_mais) AS populacao_60_mais\r\n",
+        "FROM golpe_zero.dim_populacao\r\n",
+        "GROUP BY estado, ano\r\n",
+        "ORDER BY ano;"
+      ]
+    },
+    {
+      "name": "af2b5761",
+      "displayName": "5 - Theft Indicators",
+      "queryLines": [
+        "WITH dados AS (\r\n",
+        "\r\n",
+        "    SELECT\r\n",
+        "        natureza,\r\n",
+        "        quantidade\r\n",
+        "    FROM golpe_zero.fato_ocorrencia\r\n",
+        "\r\n",
+        "    WHERE UPPER(TRIM(natureza)) NOT LIKE 'TOTAL %'\r\n",
+        "      AND UPPER(TRIM(natureza)) NOT LIKE 'Nº DE VÍTIMAS%'\r\n",
+        "\r\n",
+        ")\r\n",
+        "\r\n",
+        "SELECT\r\n",
+        "\r\n",
+        "    SUM(\r\n",
+        "        CASE\r\n",
+        "            WHEN UPPER(natureza) LIKE '%ROUBO%'\r\n",
+        "            THEN quantidade\r\n",
+        "            ELSE 0\r\n",
+        "        END\r\n",
+        "    ) AS registros_de_roubo,\r\n",
+        "\r\n",
+        "    SUM(quantidade) AS total_registros,\r\n",
+        "\r\n",
+        "    ROUND(\r\n",
+        "        100.0 * SUM(\r\n",
+        "            CASE\r\n",
+        "                WHEN UPPER(natureza) LIKE '%ROUBO%'\r\n",
+        "                THEN quantidade\r\n",
+        "                ELSE 0\r\n",
+        "            END\r\n",
+        "        ) / NULLIF(SUM(quantidade), 0),\r\n",
+        "        2\r\n",
+        "    ) AS percentual_roubos\r\n",
+        "\r\n",
+        "FROM dados;"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "2f118682",
+      "displayName": "Dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "492e74f5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "d8920c54",
+                  "fields": [
+                    {
+                      "name": "natureza",
+                      "expression": "`natureza`"
+                    },
+                    {
+                      "name": "sum(total_ocorrencias)",
+                      "expression": "SUM(`total_ocorrencias`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Top 10 tipos de incidentes",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "natureza",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_ocorrencias)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 24,
+            "width": 6,
+            "height": 14
+          }
+        },
+        {
+          "widget": {
+            "name": "total-ocorrencias-registradas",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1d42e73d",
+                  "fields": [
+                    {
+                      "name": "sum(total_ocorrencias)",
+                      "expression": "SUM(`total_ocorrencias`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Total de ocorrências registradas",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_ocorrencias)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "naturezas-monitoradas",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1d42e73d",
+                  "fields": [
+                    {
+                      "name": "sum(naturezas_monitoradas)",
+                      "expression": "SUM(`naturezas_monitoradas`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Naturezas monitoradas",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(naturezas_monitoradas)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 6,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "meses-analisados",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1d42e73d",
+                  "fields": [
+                    {
+                      "name": "sum(meses_analisados)",
+                      "expression": "SUM(`meses_analisados`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Meses analisados",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(meses_analisados)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 12,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "populacao-60-anos-ou-mais",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e06f02f6",
+                  "fields": [
+                    {
+                      "name": "sum(populacao_60_mais)",
+                      "expression": "SUM(`populacao_60_mais`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "População 60 anos ou mais",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(populacao_60_mais)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 18,
+            "width": 6,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "ff40103a",
+      "displayName": "Global Filters",
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

@@ -212,13 +212,13 @@ Para reproduzir o ambiente de desenvolvimento, são necessárias algumas ferrame
 ## 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/SEU-USUARIO/golpe-zero.git
+git clone https://github.com/AllanVI9/golpe-zero-database.git
 ```
 
 Acesse a pasta:
 
 ```bash
-cd golpe-zero
+cd golpe-zero-database
 ```
 
 ## 2. Configurar o ambiente Airflow
